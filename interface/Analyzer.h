@@ -18,9 +18,9 @@ class Analyzer{
     public:
         Analyzer(vector<TString> infiles);
         void run();
-    private:
+    protected:
         void analyze_file_(TString file);
-        void analyze_variation_(RNode rnode, TString variation);
+        virtual void analyze_variation_(RNode rnode, TString variation);
         void finish_file_(TString file);
         void manage_dataset_(TString file);
         void switch_to_folder_(TString dataset, TString variation);

@@ -28,18 +28,18 @@ void Analyzer::analyze_file_(TString file){
 // histograms is saved.
 void Analyzer::write_histograms_(){
     for( auto h : histograms_ ) {
-            auto dir = h->GetDirectory();
-            auto name = h->GetName();
+        auto dir = h->GetDirectory();
+        auto name = h->GetName();
 
-            auto existing_key = dir->GetKey(name);
-            if(existing_key){
-                h->Add((TH1D*)existing_key->ReadObj());
-            }
+        auto existing_key = dir->GetKey(name);
+        if(existing_key){
+            h->Add((TH1D*)existing_key->ReadObj());
+        }
 
-            h->Write(name, TObject::kOverwrite);
+        h->Write(name, TObject::kOverwrite);
     }
 }
-void Analyzer::analyze_variation_(RNode rnode, TString variation){
+void Analyzer::analyze_variation_(RNode rnode, TString variation) {
     HVec1D new_histos;
     new_histos.push_back(rnode.Histo1D({"Jet_pt",        "Jet_pt",      100,    0,      1000},  "Jet_pt"));
     for(auto h : new_histos) {

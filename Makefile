@@ -10,7 +10,7 @@ LIBS=-lm
 # _DEPS = Analyzer
 # DEPS = $(patsubst %,$(IDIR)/%,$(_DEPS))
 
-_OBJ = Analyzer.o
+_OBJ = Analyzer.o HInvAnalyzer.o
 OBJ = $(patsubst %,$(ODIR)/%,$(_OBJ))
 
 
@@ -18,6 +18,9 @@ $(ODIR)/%.o: $(SRCDIR)/%.cc
 	$(CC) -c -o $@ $< $(CFLAGS)
 
 run_analysis: $(OBJ)
+	$(CC) src/$@.cc -o $(BINDIR)/$@ $^ $(CFLAGS) $(LIBS)
+
+run_hinv: $(OBJ)
 	$(CC) src/$@.cc -o $(BINDIR)/$@ $^ $(CFLAGS) $(LIBS)
 
 .PHONY: clean
