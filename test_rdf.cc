@@ -10,9 +10,9 @@
 #include <set>
 #include <algorithm>    // std::find
 
-#include "interface/JetSelection.h"
-#include "interface/LepSelection.h"
-#include "interface/Variations.h"
+#include "include/JetSelection.h"
+#include "include/LepSelection.h"
+#include "include/Variations.h"
 
 using doubles = ROOT::VecOps::RVec<double>;
 using floats = ROOT::VecOps::RVec<float>;
