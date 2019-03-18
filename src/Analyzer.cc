@@ -9,18 +9,23 @@ Analyzer::Analyzer(vector<TString> infiles) {
 }
 
 void Analyzer::analyze_file_(TString file){
+    cout << "Analyzing file: " << file << endl;
     manage_dataset_(file);
-    rdf_ = new ROOT::RDataFrame("Events", file.Data());
+    auto rdf = ROOT::RDataFrame("Events", file.Data());
 
     for(auto variation : variations_) {
-        analyze_variation_(variation);
+        switch_to_folder_(current_dataset_, variation);
+        analyze_variation_(rdf, variation);
         write_histograms_();
         histograms_.clear();
     }
 
     finish_file_(file);
 };
-
+// Saves the current histograms to file
+// If a saved version already exists,
+// the sum of the pre-existing and current
+// histograms is saved.
 void Analyzer::write_histograms_(){
     for( auto h : histograms_ ) {
             auto dir = h->GetDirectory();
@@ -34,10 +39,9 @@ void Analyzer::write_histograms_(){
             h->Write(name, TObject::kOverwrite);
     }
 }
-void Analyzer::analyze_variation_(TString variation){
+void Analyzer::analyze_variation_(RNode rnode, TString variation){
     HVec1D new_histos;
-    switch_to_folder_(current_dataset_, variation);
-    new_histos.push_back(rdf_->Histo1D({"Jet_pt",        "Jet_pt",      100,    0,      1000},  "Jet_pt"));
+    new_histos.push_back(rnode.Histo1D({"Jet_pt",        "Jet_pt",      100,    0,      1000},  "Jet_pt"));
     for(auto h : new_histos) {
         h->SetDirectory(current_dir_);
         histograms_.push_back(h);

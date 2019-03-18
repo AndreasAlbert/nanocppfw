@@ -8,6 +8,7 @@
 #include<TDirectory.h>
 #include <ROOT/RDataFrame.hxx>
 
+using RNode = ROOT::RDF::RNode;
 using namespace std;
 using RDF = ROOT::RDataFrame;
 
@@ -19,7 +20,7 @@ class Analyzer{
         void run();
     private:
         void analyze_file_(TString file);
-        void analyze_variation_(TString variation);
+        void analyze_variation_(RNode rnode, TString variation);
         void finish_file_(TString file);
         void manage_dataset_(TString file);
         void switch_to_folder_(TString dataset, TString variation);
@@ -34,7 +35,5 @@ class Analyzer{
         TFile * ofile_; // Output TFile
 
         TDirectory * current_dir_;
-
-        RDF * rdf_;
 };
 #endif // ANALYZER_H
