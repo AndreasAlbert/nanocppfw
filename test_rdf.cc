@@ -20,11 +20,10 @@ using bools = ROOT::VecOps::RVec<Bool_t>;
 using ints = ROOT::VecOps::RVec<int>;
 using RDF = ROOT::RDataFrame;
 
-// void book_1d(std::vector<ROOT::RDF::RResultPtr<TH1D>> histograms,  RNode rnode, ROOT::RDF::TH1DModel model, std::string_view vName, std::string_view wName ){
-//     histograms.push_back(rnode.Histo1D(model, vName, wName));
-// }
 
-void book_histograms(RNode rnode, std::vector<ROOT::RDF::RResultPtr<TH1D>> & histograms) {
+typedef std::vector<ROOT::RDF::RResultPtr<TH1D>> HVec1D;
+
+void book_histograms(RNode rnode,  HVec1D & histograms) {
     // Helper function, creates histogram and adds to vector
     auto easy_book_1d = [&histograms, &rnode](ROOT::RDF::TH1DModel const model, std::string_view vName) { 
         histograms.push_back(rnode.Histo1D(model,"vweight"));
