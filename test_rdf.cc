@@ -36,9 +36,7 @@ void book_histograms(RNode rnode,  HVec1D & histograms) {
     easy_book_1d({"GoodJet_ptv",        "GoodJet_ptv",      100,    0,      1000},  "GoodJet_ptv");
     easy_book_1d({"GoodElectron_ptv",   "GoodElectron_ptv", 10,     -0.5,   9.5},   "GoodElectron_ptv");
 }
-void analyze_variation(RNode rnode, string variation) {
-    std::vector<ROOT::RDF::RResultPtr<TH1D>> histograms;
-
+void analyze_variation(RNode rnode, string variation, HVec1D & histograms) {
     rnode = define_good_jets(rnode);
     rnode = define_good_electrons(rnode);
     rnode = define_good_muons(rnode);
@@ -51,10 +49,6 @@ void analyze_variation(RNode rnode, string variation) {
 
     rnode = rnode.Filter("selection > 0");
     book_histograms(rnode, histograms);
-    for(auto h : histograms) {
-        h->Write();
-    }
-    histograms.clear();
 
 }
 void analyze(std::string const input_file){
@@ -64,6 +58,7 @@ void analyze(std::string const input_file){
     auto dataset_dir = output_file.mkdir(dataset.data());
 
     vector<string> variations = {"nominal","jesup","jesdown"};
+    HVec1D histograms;
     for( auto const variation : variations ) {
         // Each variation gets its own output directory
         auto output_dir = dataset_dir->mkdir(variation.data());
@@ -73,12 +68,17 @@ void analyze(std::string const input_file){
         auto rnode = apply_variation(rdf, variation);
 
         // Analyze
-        analyze_variation(rnode, variation);
+        analyze_variation(rnode, variation, histograms);
 
         // Clean up
         output_dir->Close();
         output_file.cd();
     }
+    for(auto h : histograms) {
+        h->Write();
+    }
+    // histograms.clear();
+    output_file.Close();
 }
 
 
