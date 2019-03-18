@@ -16,23 +16,17 @@
 #include "RDFUtil.h"
 
 /// Convenience definitions
-using namespace ROOT::VecOps;
-using doubles = RVec<double>;
-using floats = RVec<float>;
-using bools = RVec<Bool_t>;
-using ints = RVec<int>;
-using RDF = ROOT::RDataFrame;
 using RNode = ROOT::RDF::RNode;
-// using string = std::string;
-// using vector = std::vector;
 using namespace std;
 
-
+// Defines custom columns for a given variation
+// By defining a given column in a variation-dependent way,
+// the variations are separated from the analysis code
 RNode apply_variation(RNode rnode, string variation) {
+    /// Variable variations
     auto ret = rnode.Define("Muon_ptv","Muon_pt");
     ret = ret.Define("Electron_ptv","Electron_pt");
     ret = ret.Define("MET_ptv","MET_pt");
-
     if(variation == "nominal") {
         ret = ret.Define("Jet_ptv","1.0f*Jet_pt");
     } else if(variation == "jesup") {
@@ -42,6 +36,10 @@ RNode apply_variation(RNode rnode, string variation) {
     } else {
         throw std::invalid_argument("Encountered unknown variation: " + variation);
     }
+    
+    /// Weight variation
+    ret = ret.Define("vweight","1");
+
     return ret;
 }
 #endif

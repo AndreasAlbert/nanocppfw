@@ -12,6 +12,7 @@
 
 #include "interface/JetSelection.h"
 #include "interface/LepSelection.h"
+#include "interface/Variations.h"
 
 using doubles = ROOT::VecOps::RVec<double>;
 using floats = ROOT::VecOps::RVec<float>;
@@ -19,6 +20,44 @@ using bools = ROOT::VecOps::RVec<Bool_t>;
 using ints = ROOT::VecOps::RVec<int>;
 using RDF = ROOT::RDataFrame;
 
+// void book_1d(std::vector<ROOT::RDF::RResultPtr<TH1D>> histograms,  RNode rnode, ROOT::RDF::TH1DModel model, std::string_view vName, std::string_view wName ){
+//     histograms.push_back(rnode.Histo1D(model, vName, wName));
+// }
+
+void book_histograms(RNode rnode, std::vector<ROOT::RDF::RResultPtr<TH1D>> & histograms) {
+    // Helper function, creates histogram and adds to vector
+    auto easy_book_1d = [&histograms, &rnode](ROOT::RDF::TH1DModel const model, std::string_view vName) { 
+        histograms.push_back(rnode.Histo1D(model,"vweight"));
+    };
+
+    easy_book_1d({"nGoodElectron",      "nGoodElectron",    10,     -0.5,   9.5},   "nGoodElectron");
+    easy_book_1d({"nGoodMuon",          "nGoodMuon",        10,     -0.5,   9.5},   "nGoodMuon");
+    easy_book_1d({"nGoodJet",           "nGoodJet",         10,     -0.5,   9.5},   "nGoodJet");
+
+    easy_book_1d({"GoodJet_ptv",        "GoodJet_ptv",      100,    0,      1000},  "GoodJet_ptv");
+    easy_book_1d({"GoodElectron_ptv",   "GoodElectron_ptv", 10,     -0.5,   9.5},   "GoodElectron_ptv");
+}
+void analyze_variation(RNode rnode, string variation) {
+    std::vector<ROOT::RDF::RResultPtr<TH1D>> histograms;
+
+    rnode = define_good_jets(rnode);
+    rnode = define_good_electrons(rnode);
+    rnode = define_good_muons(rnode);
+
+    rnode = rnode.Define("selection","1 * ((nGoodJet>1) && (GoodJet_eta[0]*GoodJet_eta[1]) < 0 && (MET_ptv > 100) && (nGoodElectron+nGoodMuon==0))" \
+    "+ 2 * ((nGoodElectron==1) && (MET_ptv > 50))" \
+    "+ 4 * ((nGoodMuon==1) && (MET_ptv > 50))" \
+    "+ 8 * (nGoodElectron==2)" \
+    "+ 16 * (nGoodMuon==2)");
+
+    rnode = rnode.Filter("selection > 0");
+    book_histograms(rnode, histograms);
+    for(auto h : histograms) {
+        h->Write();
+    }
+    histograms.clear();
+
+}
 void analyze(std::string const input_file){
     ROOT::RDataFrame rdf("Events", input_file);
     string dataset = "some_dataset";
@@ -27,37 +66,17 @@ void analyze(std::string const input_file){
 
     vector<string> variations = {"nominal","jesup","jesdown"};
     for( auto const variation : variations ) {
-        std::vector<ROOT::RDF::RResultPtr<TH1D>> histograms;
+        // Each variation gets its own output directory
         auto output_dir = dataset_dir->mkdir(variation.data());
         output_dir->cd();
 
+        // Create varied node
         auto rnode = apply_variation(rdf, variation);
 
-        rnode = define_good_jets(rnode);
-        rnode = define_good_electrons(rnode);
-        rnode = define_good_muons(rnode);
+        // Analyze
+        analyze_variation(rnode, variation);
 
-        rnode = rnode.Define("selection","1 * ((nGoodJet>1) && (GoodJet_eta[0]*GoodJet_eta[1]) < 0 && (MET_ptv > 100) && (nGoodElectron+nGoodMuon==0))" \
-        "+ 2 * ((nGoodElectron==1) && (MET_ptv > 50))" \
-        "+ 4 * ((nGoodMuon==1) && (MET_ptv > 50))" \
-        "+ 8 * (nGoodElectron==2)" \
-        "+ 16 * (nGoodMuon==2)");
-
-        // rnode = rnode.Filter("selection > 0");
-        
-        histograms.push_back(rnode.Histo1D({"nGoodElectron", "nGoodElectron", 10, -0.5, 9.5},"nGoodElectron"));
-        histograms.push_back(rnode.Histo1D({"nGoodMuon", "nGoodMuon", 10, -0.5, 9.5},"nGoodMuon"));
-        histograms.push_back(rnode.Histo1D({"nGoodJet", "nGoodJet", 10, -0.5, 9.5},"nGoodJet"));
-        histograms.push_back(rnode.Histo1D({ (variation + "GoodJet_ptv").data(), (variation + "GoodJet_ptv").data(), 100, 0, 1000},"GoodJet_ptv"));
-        histograms.push_back(rnode.Histo1D({ (variation + "Jet_ptv").data(), (variation + "Jet_ptv").data(), 100, 0, 1000},"Jet_ptv"));
-        histograms.push_back(rnode.Histo1D({"GoodElectron_ptv", "GoodElectron_ptv", 10, -0.5, 9.5},"GoodElectron_ptv"));
-        // rnode.Snapshot("Events","snap"+variation+".root",{"nJet","Jet_ptv","Jet_pt"});
-
-
-        for(auto h : histograms) {
-            h->Write();
-        }
-        histograms.clear();
+        // Clean up
         output_dir->Close();
         output_file.cd();
     }

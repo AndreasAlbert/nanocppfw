@@ -76,7 +76,7 @@ RNode define_good_jets(RNode rdf) {
     return rdf;
 }
 
-#endif JETSELECTION_H
+#endif // JETSELECTION_H
 
 // struct PartInfoNames {
 //     public:
