@@ -23,6 +23,7 @@ class Analyzer{
         void finish_file_(TString file);
         void manage_dataset_(TString file);
         void switch_to_folder_(TString dataset, TString variation);
+        void write_histograms_();
 
         HVec1D histograms_;
         vector<TString> files_;

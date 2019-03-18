@@ -14,7 +14,15 @@ void Analyzer::analyze_file_(TString file){
 
     for(auto variation : variations_) {
         analyze_variation_(variation);
-        for( auto h : histograms_ ) {
+        write_histograms_();
+        histograms_.clear();
+    }
+
+    finish_file_(file);
+};
+
+void Analyzer::write_histograms_(){
+    for( auto h : histograms_ ) {
             auto dir = h->GetDirectory();
             auto name = h->GetName();
 
@@ -24,13 +32,8 @@ void Analyzer::analyze_file_(TString file){
             }
 
             h->Write(name, TObject::kOverwrite);
-            // h->Write();
-        }
-        histograms_.clear();
     }
-
-    finish_file_(file);
-};
+}
 void Analyzer::analyze_variation_(TString variation){
     HVec1D new_histos;
     switch_to_folder_(current_dataset_, variation);
@@ -74,16 +77,6 @@ void Analyzer::switch_to_folder_(TString dataset, TString variation) {
     variation_dir->cd();
     current_dir_= variation_dir;
     current_dir_->cd();
-    // TString dirname = dataset + "/" + variation;
-
-    // Try creating the directory.
-    // If it doesn't exist, nothing happens
-    // ofile_->mkdir(dirname);
-
-    // Retrieve the directory
-    // current_dir_ = ofile_->GetDirectory(dirname);
-    // ofile_->cd(dirname);
-    // gDirectory->pwd();
 }
 
 
