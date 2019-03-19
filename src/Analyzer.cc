@@ -2,8 +2,12 @@
 #include "include/Util.h"
 #include "TObject.h"
 using namespace std;
-Analyzer::Analyzer(vector<TString> infiles) {
-    files_ = infiles;
+Analyzer::Analyzer(vector<string> infiles) {
+    files_ = vector<TString>();
+    for(auto const ifile : infiles) {
+        files_.push_back(TString(ifile));
+    }
+
     variations_ = {"nominal","jesu","jesd"};
     ofpath_ = "./output.root";
 }
