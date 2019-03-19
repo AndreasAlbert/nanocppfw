@@ -3,6 +3,8 @@
 #include "interface/HInvAnalyzer.h"
 
 int main() {
+    ROOT::EnableImplicitMT();
+
     vector<TString> files;
     files.push_back("/home/albert/repos/nanocppfw/data/007E0986-34E9-9741-A447-957FF2F1982C.root");
     files.push_back("/home/albert/repos/nanocppfw/data/78341E3C-F2BD-A64E-95D6-550FCA8DDAD4.root");
