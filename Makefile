@@ -27,7 +27,7 @@ run_hinv: $(OBJ)
 	$(CC) src/$@.cc -o $(BINDIR)/$@ $^ $(CFLAGS) $(LIBS)
 
 PyBindings: $(OBJ)
-	$(CC) src/$@.cc -o $@.so $^ $(CFLAGS) $(LIBS) $(PYBIND)
+	$(CC) src/$@.cc -o $(PYBINDIR)/$@.so $^ $(CFLAGS) $(LIBS) $(PYBIND)
 
 
 .PHONY: clean
