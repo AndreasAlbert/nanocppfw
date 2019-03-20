@@ -35,7 +35,8 @@ RNode apply_variation(RNode rnode, TString variation) {
     } else if(variation == "jesd") {
         ret = ret.Define("Jet_ptv", "0.5f*Jet_pt");
     } else {
-        throw std::invalid_argument("Encountered unknown variation: " + variation);
+        string error = ("Encountered unknown variation: " + variation).Data();
+        throw invalid_argument(error);
     }
     
     /// Weight variation
