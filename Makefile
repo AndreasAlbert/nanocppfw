@@ -16,6 +16,9 @@ LIBS=-lm
 _OBJ = Analyzer.o HInvAnalyzer.o
 OBJ = $(patsubst %,$(ODIR)/%,$(_OBJ))
 
+$(shell   mkdir -p $(BINDIR))
+$(shell   mkdir -p $(ODIR))
+$(shell   mkdir -p $(PYBINDIR))
 
 $(ODIR)/%.o: $(SRCDIR)/%.cc
 	$(CC) -c -o $@ $< $(CFLAGS) -fPIC
