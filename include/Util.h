@@ -21,7 +21,7 @@ std::string random_string( size_t length )
     return str;
 }
 
-
+// Converts a vector of TStrings to a vector of std::strings
 vector<TString> string_to_tstrings(vector<string> strings) {
     vector <TString> tstrings;
     for(auto const istring : strings) {
