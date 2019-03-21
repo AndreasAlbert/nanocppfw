@@ -3,7 +3,12 @@ import sys
 import PyBindings
 
 def get_input_files():
-    if len(sys.argv) > 1:
+    nargs = len(sys.argv)
+
+    if nargs==2 and sys.argv[1].endswith(".txt"):
+        with open(sys.argv[1],"r") as f:
+            files = [x.strip() for x in f.readlines()]
+    elif nargs > 1:
         files = sys.argv[1:]
     else:
         files = []
