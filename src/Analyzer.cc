@@ -2,14 +2,16 @@
 #include "include/Util.h"
 #include "TObject.h"
 using namespace std;
-Analyzer::Analyzer(vector<string> infiles) {
-    files_ = vector<TString>();
-    for(auto const ifile : infiles) {
-        files_.push_back(TString(ifile));
-    }
 
+// Constructor
+Analyzer::Analyzer(vector<TString> infiles) {
+    this->files_ = infiles;
     variations_ = {"nominal","jesu","jesd"};
     ofpath_ = "./output.root";
+}
+
+// Overloaded constructor to handle std::strings
+Analyzer::Analyzer(vector<string> infiles) : Analyzer(string_to_tstrings(infiles)) {
 }
 
 void Analyzer::analyze_file_(TString file){

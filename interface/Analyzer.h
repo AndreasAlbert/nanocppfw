@@ -17,6 +17,7 @@ typedef std::vector<ROOT::RDF::RResultPtr<TH1D>> HVec1D;
 class Analyzer{
     public:
         Analyzer(vector<string> infiles);
+        Analyzer(vector<TString> infiles);
         void run();
     protected:
         void analyze_file_(TString file);
