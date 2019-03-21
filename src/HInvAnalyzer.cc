@@ -1,11 +1,32 @@
 #include <math.h>
 
 #include "interface/HInvAnalyzer.h"
+#include "interface/SelectionManager.h"
+
 #include "include/JetSelection.h"
 #include "include/LepSelection.h"
 #include "include/Variations.h"
 
+HInvAnalyzer::HInvAnalyzer(vector<TString> infiles) : Analyzer::Analyzer(infiles) {
+    this->selection_manager_ = this->initialize_selections_();
+}
 
+SelectionManager HInvAnalyzer::initialize_selections_() {
+    SelectionManager sman;
+
+    // Signal
+    sman.add_selection(Selection("(nGoodJet>1) && (GoodJet_eta[0]*GoodJet_eta[1]) < 0 && (MET_ptv > 100) && (nGoodElectron+nGoodMuon==0)", true));
+
+    // CR: single lep
+    sman.add_selection(Selection("(nGoodElectron==1) && (MET_ptv > 50)", false));
+    sman.add_selection(Selection("(nGoodMuon==1) && (MET_ptv > 50)", false));
+
+    // CR: dilep
+    sman.add_selection(Selection("(nGoodElectron==2) && (nGoodMuon==0)", false));
+    sman.add_selection(Selection("(nGoodElectron==0) && (nGoodMuon==2)", false));
+
+    return sman;
+}
 void book_histograms(RNode rnode,  HVec1D & histograms) {
     // Loop over selections and create histograms for each selection type
     for(int isel = 0; isel < 5;isel++) {

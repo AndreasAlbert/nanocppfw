@@ -13,7 +13,7 @@ LIBS=-lm
 # _DEPS = Analyzer
 # DEPS = $(patsubst %,$(IDIR)/%,$(_DEPS))
 
-_OBJ = Analyzer.o HInvAnalyzer.o
+_OBJ = Analyzer.o HInvAnalyzer.o SelectionManager.o
 OBJ = $(patsubst %,$(ODIR)/%,$(_OBJ))
 
 $(shell   mkdir -p $(BINDIR))
