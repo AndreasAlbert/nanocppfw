@@ -39,6 +39,10 @@ TString SelectionManager::get_full_string() const {
         if(this->blind_ != sel.blind){
             continue;
         }
+        // Plus sign for all but the first selection
+        if ( i > 0) {
+            ret += "+";
+        }
         // Append string for this selection to total
         string power_of_two = to_string(int(pow(2,i)));
         ret += power_of_two + "*(" + sel.selection_string + ")";
@@ -50,4 +54,5 @@ TString SelectionManager::get_full_string() const {
 RNode SelectionManager::select(RNode rnode) {
     auto selection_string = get_full_string();
     auto ret = rnode.Define("selection", selection_string.Data());
+    return ret;
 }

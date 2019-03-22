@@ -7,7 +7,7 @@
 #include "include/LepSelection.h"
 #include "include/Variations.h"
 
-HInvAnalyzer::HInvAnalyzer(vector<TString> infiles) : Analyzer::Analyzer(infiles) {
+HInvAnalyzer::HInvAnalyzer(vector<string> infiles) : Analyzer::Analyzer(infiles) {
     this->selection_manager_ = this->initialize_selections_();
 }
 
@@ -77,19 +77,20 @@ void book_histograms(RNode rnode,  HVec1D & histograms) {
 
 void HInvAnalyzer::analyze_variation_(RNode rnode, TString variation){
     cout << "Analyzing variation: " << variation << endl;
+
+    // Define varied variables
     rnode = apply_variation(rnode, variation);
+
+    // Object selection
     rnode = define_good_jets(rnode);
     rnode = define_good_electrons(rnode);
     rnode = define_good_muons(rnode);
 
-    rnode = rnode.Define("selection","1 * ((nGoodJet>1) && (GoodJet_eta[0]*GoodJet_eta[1]) < 0 && (MET_ptv > 100) && (nGoodElectron+nGoodMuon==0))" \
-    "+ 2 * ((nGoodElectron==1) && (MET_ptv > 50))" \
-    "+ 4 * ((nGoodMuon==1) && (MET_ptv > 50))" \
-    "+ 8 * ((nGoodElectron==2) && (nGoodMuon==0))" \
-    "+ 16 * ((nGoodElectron==0) && (nGoodMuon==2))");
-
+    // Event selection
+    rnode = selection_manager_.select(rnode);
     rnode = rnode.Filter("selection > 0");
 
+    // Create histograms
     HVec1D histos;
     book_histograms(rnode, histos);
     this->histograms_[variation] = histos;

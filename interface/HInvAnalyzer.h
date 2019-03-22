@@ -8,7 +8,8 @@
 
 class HInvAnalyzer : public Analyzer {
     using Analyzer::Analyzer;
-    HInvAnalyzer(vector<TString> infiles);
+    public:
+        HInvAnalyzer(vector<string> infiles);
     private:
         void analyze_variation_(RNode rnode, TString variation) override;
         SelectionManager initialize_selections_();        
