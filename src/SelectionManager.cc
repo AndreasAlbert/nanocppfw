@@ -42,7 +42,7 @@ TString SelectionManager::get_full_string() const {
         auto const sel = this->selections_.at(i);
 
         // Possibly skip blinded selections
-        if(this->blind_ != sel.blind){
+        if(this->blind_ == sel.blind){
             continue;
         }
         // Plus sign for all but the first selection
