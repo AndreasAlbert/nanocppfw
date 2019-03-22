@@ -7,6 +7,8 @@
 #include "include/LepSelection.h"
 #include "include/Variations.h"
 
+#include "include/RDFUtil.h"
+
 HInvAnalyzer::HInvAnalyzer(vector<string> infiles) : Analyzer::Analyzer(infiles) {
     this->selection_manager_ = this->initialize_selections_();
 }
@@ -18,12 +20,12 @@ SelectionManager HInvAnalyzer::initialize_selections_() {
     sman.add_selection(Selection("SR_VBF","(nGoodJet>1) && (GoodJet_eta[0]*GoodJet_eta[1]) < 0 && (MET_ptv > 100) && (nGoodElectron+nGoodMuon==0)", true));
 
     // CR: single lep
-    sman.add_selection(Selection("CR_W_EL","(nGoodElectron==1) && (MET_ptv > 50)", false));
-    sman.add_selection(Selection("CR_W_MU","(nGoodMuon==1) && (MET_ptv > 50)", false));
+    sman.add_selection(Selection("CR_W_EL","HLT_Ele32_WPTight_Gsf && (nGoodElectron==1) && (MET_ptv > 50) && (GoodElectron_ptv[0] > 35)", false));
+    sman.add_selection(Selection("CR_W_MU","HLT_IsoMu27 && (nGoodMuon==1) && (MET_ptv > 50) && (GoodMuon_ptv[0] > 35)", false));
 
     // CR: dilep
-    sman.add_selection(Selection("CR_Z_EL","(nGoodElectron==2) && (nGoodMuon==0)", false));
-    sman.add_selection(Selection("CR_Z_MU","(nGoodElectron==0) && (nGoodMuon==2)", false));
+    sman.add_selection(Selection("CR_Z_EL","HLT_Ele32_WPTight_Gsf && (nGoodElectron==2) && (nGoodMuon==0) && (GoodElectron_ptv[0] > 35)", false));
+    sman.add_selection(Selection("CR_Z_MU","HLT_IsoMu27 && (HLT_IsoMu27) && (nGoodElectron==0) && (nGoodMuon==2) && (GoodMuon_ptv[0] > 35)", false));
 
     return sman;
 }
@@ -72,6 +74,52 @@ void HInvAnalyzer::book_histograms(RNode rnode,  HVec1D & histograms) {
         easy_book_1d(r2jet, "jet1_phi",            50,     -M_PI,  M_PI);
         easy_book_1d(r2jet, "jet1_eta",            100,    -5,     5  );
         easy_book_1d(r2jet, "jets_etaproduct",     100,    -25,      25);
+
+        //// At least one muon
+        auto r1mu = rsel.Filter("nGoodMuon>0");
+        r1mu = r1mu.Define("mu0_pt", "GoodMuon_ptv[0]");
+        r1mu = r1mu.Define("mu0_eta", "GoodMuon_eta[0]");
+        r1mu = r1mu.Define("mu0_phi", "GoodMuon_phi[0]");
+
+        easy_book_1d(r1mu, "mu0_pt",             100,    0,      1000);
+        easy_book_1d(r1mu, "mu0_phi",            50,     -M_PI,  M_PI);
+        easy_book_1d(r1mu, "mu0_eta",            100,    -5,     5  );
+
+        //// At least one electron
+        auto r1el = rsel.Filter("nGoodElectron>0");
+        r1el = r1el.Define("el0_pt", "GoodElectron_ptv[0]");
+        r1el = r1el.Define("el0_eta", "GoodElectron_eta[0]");
+        r1el = r1el.Define("el0_phi", "GoodElectron_phi[0]");
+
+        easy_book_1d(r1el, "el0_pt",             100,    0,      1000);
+        easy_book_1d(r1el, "el0_phi",            50,     -M_PI,  M_PI);
+        easy_book_1d(r1el, "el0_eta",            100,    -5,     5  );
+
+        //// Two muons
+        auto r2mu = rsel.Filter("nGoodMuon==2");
+        r2mu = r2mu.Define("mu1_pt", "GoodMuon_ptv[1]");
+        r2mu = r2mu.Define("mu1_eta", "GoodMuon_eta[1]");
+        r2mu = r2mu.Define("mu1_phi", "GoodMuon_phi[1]");
+        r2mu = r2mu.Define("dimuon_mass", inv_mass_leading_two, {"GoodMuon_ptv","GoodMuon_eta","GoodMuon_phi"} );
+
+        easy_book_1d(r2mu, "mu1_pt",             100,    0,      1000);
+        easy_book_1d(r2mu, "mu1_phi",            50,     -M_PI,  M_PI);
+        easy_book_1d(r2mu, "mu1_eta",            100,    -5,     5  );
+        easy_book_1d(r2mu, "dimuon_mass",            100,    50, 150  );
+
+        //// Two electrons
+        auto r2el = rsel.Filter("nGoodElectron==2");
+        r2el = r2el.Define("el1_pt", "GoodElectron_ptv[1]");
+        r2el = r2el.Define("el1_eta", "GoodElectron_eta[1]");
+        r2el = r2el.Define("el1_phi", "GoodElectron_phi[1]");
+        r2el = r2el.Define("dielectron_mass", inv_mass_leading_two, {"GoodElectron_ptv","GoodElectron_eta","GoodElectron_phi"} );
+
+        easy_book_1d(r2el, "el1_pt",             100,    0,      1000);
+        easy_book_1d(r2el, "el1_phi",            50,     -M_PI,  M_PI);
+        easy_book_1d(r2el, "el1_eta",            100,    -5,     5  );
+        easy_book_1d(r2el, "dielectron_mass",            100,    50, 150  );
+
+
     }
 }
 
@@ -87,10 +135,16 @@ void HInvAnalyzer::analyze_variation_(RNode rnode, TString variation){
     rnode = define_good_muons(rnode);
 
     // Event selection
-    bool is_data = this->dataset_.Contains("Run201");
-    selection_manager_.set_blind(is_data);
+    selection_manager_.set_blind(this->is_data_);
     rnode = selection_manager_.select(rnode);
     rnode = rnode.Filter("selection > 0");
+
+    if(this->is_data_) {
+        rnode = rnode.Define("vweight","1");
+    } else {
+        rnode = rnode.Define("vweight","genWeight");
+    }
+
 
     // Create histograms
     HVec1D histos;
