@@ -62,3 +62,14 @@ RNode SelectionManager::select(RNode rnode) {
     auto ret = rnode.Define("selection", selection_string.Data());
     return ret;
 }
+
+Selection SelectionManager::get_selection(int position){
+    return this->selections_.at(position);
+}
+Selection SelectionManager::get_selection(TString tag){
+    for(auto selection : this->selections_) {
+        if (tag == selection.tag) {
+            return selection;
+        }
+    }
+}

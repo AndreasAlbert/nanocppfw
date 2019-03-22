@@ -74,6 +74,8 @@ class SelectionManager {
         void add_selection(Selection selection);
         void set_blind(bool blind);
         TString get_selection_tag(int position);
+        Selection get_selection(int position);
+        Selection get_selection(TString tag);
 
         // Applying the selection
         RNode select(RNode rnode);
