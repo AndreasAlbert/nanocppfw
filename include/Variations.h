@@ -38,9 +38,6 @@ RNode apply_variation(RNode rnode, TString variation) {
         string error = ("Encountered unknown variation: " + variation).Data();
         throw invalid_argument(error);
     }
-    
-    /// Weight variation
-    ret = ret.Define("vweight","1");
 
     return ret;
 }
