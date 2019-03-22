@@ -36,7 +36,7 @@ void book_histograms(RNode rnode,  HVec1D & histograms) {
         auto easy_book_1d = [&histograms, &tag](RNode rnode, TString name, int nbinsx, double xlow, double xup) {
             TString title = tag+name;
             auto model = ROOT::RDF::TH1DModel(title.Data(), title.Data(), nbinsx, xlow, xup);
-            histograms.push_back(rnode.Histo1D(model, name.Data(), "vweight"));
+            histograms.push_back(rnode.Histo1D<float>(model, name.Data(), "vweight"));
         };
 
         int sel_power = pow(2, isel);
@@ -76,6 +76,7 @@ void book_histograms(RNode rnode,  HVec1D & histograms) {
 }
 
 void HInvAnalyzer::analyze_variation_(RNode rnode, TString variation){
+    cout << "Analyzing variation: " << variation << endl;
     rnode = apply_variation(rnode, variation);
     rnode = define_good_jets(rnode);
     rnode = define_good_electrons(rnode);

@@ -17,5 +17,7 @@ PYBIND11_MODULE(PyBindings, m) {
 
     py::class_<HInvAnalyzer>(m, "HInvAnalyzer")
         .def(py::init<const std::vector<std::string> &>())
-        .def("run", &Analyzer::run);
+        .def("run", &Analyzer::run)
+        .def("set_fixed_dataset", &Analyzer::set_fixed_dataset)
+        .def("set_output_path", &Analyzer::set_output_path);
 }

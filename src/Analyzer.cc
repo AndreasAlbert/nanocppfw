@@ -31,8 +31,6 @@ void Analyzer::analyze_file_(TString file){
 };
 
 void Analyzer::analyze_chain_(){
-    manage_dataset_("dummy");
-
     vector<string> strings;
     for(auto const tstring : this->files_) {
         strings.push_back(string(tstring.Data()));
@@ -107,6 +105,7 @@ void Analyzer::switch_to_folder_(TString dataset, TString variation) {
 void Analyzer::set_fixed_dataset(string dataset) {
     this->fixed_dataset_ = true;
     this->current_dataset_ = dataset;
+    cout << "Analyzer: Use fixed dataset '" << dataset << "'." << endl;
 }
 
 void Analyzer::run() {
