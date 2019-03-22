@@ -15,26 +15,26 @@ SelectionManager HInvAnalyzer::initialize_selections_() {
     SelectionManager sman;
 
     // Signal
-    sman.add_selection(Selection("(nGoodJet>1) && (GoodJet_eta[0]*GoodJet_eta[1]) < 0 && (MET_ptv > 100) && (nGoodElectron+nGoodMuon==0)", true));
+    sman.add_selection(Selection("SR_VBF","(nGoodJet>1) && (GoodJet_eta[0]*GoodJet_eta[1]) < 0 && (MET_ptv > 100) && (nGoodElectron+nGoodMuon==0)", true));
 
     // CR: single lep
-    sman.add_selection(Selection("(nGoodElectron==1) && (MET_ptv > 50)", false));
-    sman.add_selection(Selection("(nGoodMuon==1) && (MET_ptv > 50)", false));
+    sman.add_selection(Selection("CR_W_EL","(nGoodElectron==1) && (MET_ptv > 50)", false));
+    sman.add_selection(Selection("CR_W_MU","(nGoodMuon==1) && (MET_ptv > 50)", false));
 
     // CR: dilep
-    sman.add_selection(Selection("(nGoodElectron==2) && (nGoodMuon==0)", false));
-    sman.add_selection(Selection("(nGoodElectron==0) && (nGoodMuon==2)", false));
+    sman.add_selection(Selection("CR_Z_EL","(nGoodElectron==2) && (nGoodMuon==0)", false));
+    sman.add_selection(Selection("CR_Z_MU","(nGoodElectron==0) && (nGoodMuon==2)", false));
 
     return sman;
 }
-void book_histograms(RNode rnode,  HVec1D & histograms) {
+void HInvAnalyzer::book_histograms(RNode rnode,  HVec1D & histograms) {
     // Loop over selections and create histograms for each selection type
     for(int isel = 0; isel < 5;isel++) {
-        auto tag = "sel" + to_string(isel) + "_";
+        auto tag = this->selection_manager_.get_selection_tag(isel);
 
         // Helper function, creates histogram and adds to vector
         auto easy_book_1d = [&histograms, &tag](RNode rnode, TString name, int nbinsx, double xlow, double xup) {
-            TString title = tag+name;
+            TString title = tag+"_"+name;
             auto model = ROOT::RDF::TH1DModel(title.Data(), title.Data(), nbinsx, xlow, xup);
             histograms.push_back(rnode.Histo1D<float>(model, name.Data(), "vweight"));
         };
@@ -87,6 +87,8 @@ void HInvAnalyzer::analyze_variation_(RNode rnode, TString variation){
     rnode = define_good_muons(rnode);
 
     // Event selection
+    bool is_data = this->dataset_.Contains("Run201");
+    selection_manager_.set_blind(is_data);
     rnode = selection_manager_.select(rnode);
     rnode = rnode.Filter("selection > 0");
 

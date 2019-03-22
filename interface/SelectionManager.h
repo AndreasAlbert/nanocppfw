@@ -16,11 +16,13 @@ using namespace std;
 // Additionally, a selection stage can be blind or not
 // Blinded selection stages can selectively not be filled
 struct Selection {
+    TString tag;
     TString selection_string;
     bool blind;
-    Selection(TString istring, bool iblind) {
-        selection_string = istring;
-        blind = iblind;
+    Selection(TString tag, TString istring, bool iblind) {
+        this->tag = tag;
+        this->selection_string = istring;
+        this->blind = iblind;
     }
 };
 
@@ -35,6 +37,7 @@ class SelectionManager {
         // Setters, getters
         void add_selection(Selection selection);
         void set_blind(bool blind);
+        TString get_selection_tag(int position);
 
         // Applying the selection
         RNode select(RNode rnode);

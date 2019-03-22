@@ -12,6 +12,8 @@ class HInvAnalyzer : public Analyzer {
         HInvAnalyzer(vector<string> infiles);
     private:
         void analyze_variation_(RNode rnode, TString variation) override;
+        void book_histograms(RNode rnode,  HVec1D & histograms);
+
         SelectionManager initialize_selections_();        
         SelectionManager selection_manager_;
 };

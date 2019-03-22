@@ -14,6 +14,12 @@ void SelectionManager::add_selection(Selection selection) {
 void SelectionManager::set_blind(bool blind) {
     this->blind_ = blind;
 }
+// Returns the tag of the selection at a given position
+TString SelectionManager::get_selection_tag(int position) {
+    auto ret = this->selections_.at(position).tag;
+    return ret;
+}
+
 // Constructs a string representing the sum of all selections
 // The individual selections are encoded as bits by adding powers of two.
 // If 'blind' is specified, blinded selections are not included
