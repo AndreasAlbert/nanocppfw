@@ -90,12 +90,7 @@ void HInvAnalyzer::analyze_variation_(RNode rnode, TString variation){
 
     rnode = rnode.Filter("selection > 0");
 
-
     HVec1D histos;
     book_histograms(rnode, histos);
-
-    for(auto h : histos) {
-        h->SetDirectory(current_dir_);
-        histograms_.push_back(h);
-    }
+    this->histograms_[variation] = histos;
 }

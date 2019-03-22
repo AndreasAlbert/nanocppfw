@@ -22,18 +22,15 @@ class Analyzer{
         void set_output_path(string output_path);
         void set_fixed_dataset(string dataset);
     protected:
-        void analyze_file_(TString file);
         void analyze_chain_();
         virtual void analyze_variation_(RNode rnode, TString variation);
-        void manage_dataset_(TString file);
-        void switch_to_folder_(TString dataset, TString variation);
         void write_histograms_();
 
-        HVec1D histograms_;
+        map<TString, HVec1D> histograms_;
         vector<TString> files_;
         vector<TString> variations_;
 
-        TString current_dataset_;
+        TString dataset_;
         TString ofpath_; // Path to output file
         TFile * ofile_; // Output TFile
 
