@@ -19,10 +19,12 @@ class Analyzer{
         Analyzer(vector<string> infiles);
         Analyzer(vector<TString> infiles);
         void run();
+        void set_output_path(string output_path);
+        void set_fixed_dataset(string dataset);
     protected:
         void analyze_file_(TString file);
+        void analyze_chain_();
         virtual void analyze_variation_(RNode rnode, TString variation);
-        void finish_file_(TString file);
         void manage_dataset_(TString file);
         void switch_to_folder_(TString dataset, TString variation);
         void write_histograms_();
@@ -36,5 +38,7 @@ class Analyzer{
         TFile * ofile_; // Output TFile
 
         TDirectory * current_dir_;
+
+        bool fixed_dataset_;
 };
 #endif // ANALYZER_H

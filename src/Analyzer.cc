@@ -14,6 +14,9 @@ Analyzer::Analyzer(vector<TString> infiles) {
 Analyzer::Analyzer(vector<string> infiles) : Analyzer(string_to_tstrings(infiles)) {
 }
 
+void Analyzer::set_output_path(string output_path) {
+    this->ofpath_ = TString(output_path);
+}
 void Analyzer::analyze_file_(TString file){
     cout << "Analyzing file: " << file << endl;
     manage_dataset_(file);
@@ -25,9 +28,25 @@ void Analyzer::analyze_file_(TString file){
         write_histograms_();
         histograms_.clear();
     }
-
-    finish_file_(file);
 };
+
+void Analyzer::analyze_chain_(){
+    manage_dataset_("dummy");
+
+    vector<string> strings;
+    for(auto const tstring : this->files_) {
+        strings.push_back(string(tstring.Data()));
+    }
+    auto rdf = ROOT::RDataFrame("Events", strings);
+
+    for(auto variation : variations_) {
+        switch_to_folder_(current_dataset_, variation);
+        analyze_variation_(rdf, variation);
+        write_histograms_();
+        histograms_.clear();
+    }
+};
+
 // Saves the current histograms to file
 // If a saved version already exists,
 // the sum of the pre-existing and current
@@ -47,15 +66,11 @@ void Analyzer::write_histograms_(){
 }
 void Analyzer::analyze_variation_(RNode rnode, TString variation) {
     HVec1D new_histos;
-    new_histos.push_back(rnode.Histo1D({"Jet_pt",        "Jet_pt",      100,    0,      1000},  "Jet_pt"));
+    new_histos.push_back(rnode.Histo1D<float>({"Jet_pt",        "Jet_pt",      100,    0,      1000},  "Jet_pt"));
     for(auto h : new_histos) {
         h->SetDirectory(current_dir_);
         histograms_.push_back(h);
     }
-}
-
-void Analyzer::finish_file_(TString file){
-
 }
 
 void Analyzer::manage_dataset_(TString file){
@@ -89,11 +104,20 @@ void Analyzer::switch_to_folder_(TString dataset, TString variation) {
     current_dir_->cd();
 }
 
+void Analyzer::set_fixed_dataset(string dataset) {
+    this->fixed_dataset_ = true;
+    this->current_dataset_ = dataset;
+}
 
 void Analyzer::run() {
-    ofile_ = new TFile(ofpath_, "RECREATE");
-    for(auto const file : files_) {
-        analyze_file_(file);
+    this->ofile_ = new TFile(ofpath_, "RECREATE");
+    bool use_chain = true;
+    if(this->fixed_dataset_) {
+        this->analyze_chain_();
+    } else {
+        for(auto const file : this->files_) {
+            this->analyze_file_(file);
+        }
     }
-    ofile_->Close();
+    this->ofile_->Close();
 }
