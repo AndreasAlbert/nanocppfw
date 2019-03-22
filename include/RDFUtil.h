@@ -48,4 +48,8 @@ RVec<T> UniqueItems(RVec<T> const vector){
     }
     return ret;
 }
+
+float inv_mass_leading_two(floats pt, floats eta, floats phi) {
+    return sqrt(2 * pt[0] * pt[1] * (cosh(eta[0]-eta[1])-cos(phi[0]-phi[1])));
+}
 #endif //RDFUTIL_H
