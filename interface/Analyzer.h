@@ -37,5 +37,6 @@ class Analyzer{
         TDirectory * current_dir_;
 
         bool fixed_dataset_;
+        bool is_data_;
 };
 #endif // ANALYZER_H

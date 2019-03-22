@@ -62,11 +62,15 @@ void Analyzer::analyze_variation_(RNode rnode, TString variation) {
 void Analyzer::set_fixed_dataset(string dataset) {
     this->fixed_dataset_ = true;
     this->dataset_ = dataset;
+    this->is_data_ = TString(dataset).Contains("Run201");
     cout << "Analyzer: Use fixed dataset '" << dataset << "'." << endl;
 }
 
 void Analyzer::run() {
     this->ofile_ = new TFile(ofpath_, "RECREATE");
+    if(this->is_data_) {
+        this->variations_ = {"nominal"};
+    }
     this->analyze_chain_();
     this->ofile_->Close();
 }
