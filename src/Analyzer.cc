@@ -34,6 +34,9 @@ void Analyzer::analyze_chain_(){
 
 // Saves the histograms to file
 void Analyzer::write_histograms_(){
+
+    // The output structure is
+    // ofile:/dataset/variation/histogram
     auto dataset_dir = ofile_->GetDirectory(this->dataset_);
     if( not dataset_dir ){
         dataset_dir = this->ofile_->mkdir(this->dataset_);
@@ -42,7 +45,6 @@ void Analyzer::write_histograms_(){
         auto variation_dir = dataset_dir->mkdir(variation);
         variation_dir->cd();
         for(auto histogram : this->histograms_[variation]){
-            cout << "Histogram " << histogram->GetName() << endl;
             histogram->SetDirectory(variation_dir);
             histogram->Write();
         }
