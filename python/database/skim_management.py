@@ -16,15 +16,14 @@ class skim(luigi.Config):
     cmssw_base = luigi.Parameter(default='')
 
 class InitializePeriod(sqla.CopyToTable):
-    # If database table is already created, then the schema can be loaded
-    # by setting the reflect flag to True
+    period = luigi.Parameter()
+
     reflect = True
     connection_string = "sqlite:///test.db"  # in memory SQLite database
     table = "period"  # name of the table to store data
 
     def rows(self):
-        for row in [("2017",),("2018",)]:
-            yield row
+        yield (self.period,)
 
 
 class InitializeDatasets(sqla.CopyToTable):
@@ -153,13 +152,6 @@ class RegisterCrabFiles(sqla.CopyToTable):
         return GetCrabFiles(self.crab_path)
 
 if __name__ == '__main__':
-
-    # task = InitializePeriod()
-
-    # stub = "/ZJetsToNuNu_HT-100To200_13TeV-madgraph/*NanoAODv4*/NANOAODSIM"
-    # task2 = InitializeDatasets(input_path=stub)
-
-    # tasks = []
 
     task = RegisterCrabFiles(crab_path="/disk1/albert/hinv_vbf/slc6/CMSSW_10_2_11/src/PhysicsTools/NanoAODTools/crab/wdir/19Mar19/crab_nano_post_19Mar19_SingleElectron_Run2017C/")
     luigi.build([task], local_scheduler=True)
