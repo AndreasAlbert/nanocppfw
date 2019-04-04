@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python
 
 from sqlalchemy import Column, Integer, String, Boolean, Float, Date
 from sqlalchemy.ext.declarative import declarative_base
@@ -60,7 +60,7 @@ def main():
         path_to_db = "test.db"
 
     if os.path.exists(path_to_db):
-        raise IOError(f"Will not overwrite existing input: {path_to_db}")
+        raise IOError("Will not overwrite existing input: {}.".format(path_to_db))
 
     prefix = "sqlite:///"
     if not path_to_db.startswith(prefix):
