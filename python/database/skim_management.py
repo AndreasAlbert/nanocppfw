@@ -12,6 +12,7 @@ import tarfile
 import json
 import re
 import subprocess
+import sys
 class skim(luigi.Config):
     cmssw_base = luigi.Parameter(default='')
 
@@ -25,13 +26,11 @@ class InitializePeriod(sqla.CopyToTable):
     def rows(self):
         yield (self.period,)
 
-
-class InitializeDatasets(sqla.CopyToTable):
+class GetDatasets(luigi.Task):
     input_path = luigi.Parameter()
 
-    reflect = True
-    connection_string = "sqlite:///test.db"  # in memory SQLite database
-    table = "dataset"
+    def output(self):
+        return MockTarget("mock")
 
     def expand_input_path(self):
         """Expand a dataset path into a list of matching paths
@@ -51,9 +50,10 @@ class InitializeDatasets(sqla.CopyToTable):
             raise RuntimeError("No datasets found for path {}.".format(self.input_path))
         self.paths = paths
 
-    def rows(self):
+    def run(self):
         self.expand_input_path()
-        print self.paths
+        out = self.output().open("w")
+        rawline = "{path} {is_mc} {xs} {nevents} {period}\n"
         for ipath in self.paths:
             # Get data set properties from DAS
             props = json.loads(das_go_query("dataset={}".format(ipath), json=True))
@@ -70,13 +70,86 @@ class InitializeDatasets(sqla.CopyToTable):
             # Run period
             period = data["acquisition_era_name"]
 
+            yield InitializePeriod(period)
+
             # Dummy
-            xs = None
+            xs = 0
 
             # Construct row
-            irow = (ipath, is_mc, xs, nevents, period)
-            yield irow
+            line = rawline.format(path=ipath, is_mc=is_mc, xs=xs, nevents=nevents, period=period)
+            out.write(line)
+        out.close()
 
+# class InitializeDatasets(sqla.CopyToTable):
+#     input_path = luigi.Parameter()
+
+#     reflect = True
+#     connection_string = "sqlite:///test.db"  # in memory SQLite database
+#     table = "dataset"
+
+#     def expand_input_path(self):
+#         """Expand a dataset path into a list of matching paths
+
+#         If the input path is already a fully formed path,
+#         the output list will simply contain that path as its
+#         only element. If, however, there are asterisks in the
+#         input, a DAS query will be used to find all data set
+#         names matching this pattern.
+
+#         :raises RuntimeError: If DAS reports that no matching paths are found.
+#         """
+#         rawlines = das_go_query("dataset={}".format(self.input_path))
+
+#         paths = list(map(lambda x: x.decode("utf-8").strip(), rawlines.splitlines()))
+#         if not len(paths):
+#             raise RuntimeError("No datasets found for path {}.".format(self.input_path))
+#         self.paths = paths
+
+#     def rows(self):
+#         self.expand_input_path()
+#         print self.paths
+#         for ipath in self.paths:
+#             # Get data set properties from DAS
+#             props = json.loads(das_go_query("dataset={}".format(ipath), json=True))
+#             data = {}
+#             for entry in props:
+#                 data.update(entry["dataset"][0])
+
+#             # Number of events in data set
+#             nevents = int(data["nevents"])
+
+#             # MC or not?
+#             is_mc = data["datatype"] != "data"
+
+#             # Run period
+#             period = data["acquisition_era_name"]
+
+#             # Dummy
+#             xs = None
+
+#             # Construct row
+#             irow = (ipath, is_mc, xs, nevents, period)
+#             yield irow
+
+class RegisterDatasets(sqla.CopyToTable):
+    input_path = luigi.Parameter()
+
+    reflect = True
+    connection_string = "sqlite:///test.db"
+    table = "dataset"
+    column_separator=" "
+    def requires(self):
+        return GetDatasets(self.input_path)
+
+class RegisterSkim(sqla.CopyToTable):
+    skim_tag = luigi.Parameter()
+
+    reflect = True
+    connection_string = "sqlite:///test.db"
+    table = "skim"
+
+    def rows(self):
+        yield [self.skim_tag, ""]
 
 class ExtractTarMember(luigi.Task):
     """Task that extracts a given tar file
@@ -122,7 +195,8 @@ class GetCrabFiles(luigi.Task):
         skim_tag = dummy.config.Data.outputDatasetTag
 
         # Make sure dataset is registered
-        yield InitializeDatasets(dataset)
+        yield RegisterDatasets(dataset)
+        yield RegisterSkim(skim_tag)
 
         # Extract file list and write
         rawline = "{path} {size} {events} {dataset} {skim_tag}\n"
@@ -152,6 +226,12 @@ class RegisterCrabFiles(sqla.CopyToTable):
         return GetCrabFiles(self.crab_path)
 
 if __name__ == '__main__':
+    tasks = []
+    for path in sys.argv:
+        if not os.path.isdir(path):
+            continue
+        tasks.append(
+            RegisterCrabFiles(crab_path=path)
+        )
 
-    task = RegisterCrabFiles(crab_path="/disk1/albert/hinv_vbf/slc6/CMSSW_10_2_11/src/PhysicsTools/NanoAODTools/crab/wdir/19Mar19/crab_nano_post_19Mar19_SingleElectron_Run2017C/")
-    luigi.build([task], local_scheduler=True)
+    luigi.build(tasks, local_scheduler=True)
