@@ -10,6 +10,10 @@ import sqlalchemy as db
 from sqlalchemy.orm import sessionmaker
 import re
 
+import logging
+
+log = logging.getLogger("trybind")
+
 def init_db_session(path_to_db):
     engine = db.create_engine('sqlite:///' + path_to_db)
 
@@ -18,16 +22,19 @@ def init_db_session(path_to_db):
     return Session()
 
 def parse_cli():
-    parser = argparse.ArgumentParser(description='Runs HInv Analysis')
+    parser = argparse.ArgumentParser(description='Runs Analysis')
 
-    subparsers = parser.add_subparsers()
+
+    general_args = parser.add_argument_group("General")
+    general_args.add_argument('--debug', default="INFO", type=str, choices=logging._levelNames.keys(),
+                        help='Debug level.')
 
     analysis_args = parser.add_argument_group("Analysis")
     analysis_args.add_argument('--analyzer', default="HInvAnalyzer", type=str,
                         help='Analyzer to run.')
-
+    
     input_args = parser.add_argument_group("Inputs")
-    input_args.add_argument('--dataset', default=None, required=True, type=str,
+    input_args.add_argument('--dataset', default=None, required=False, type=str,
                         help='Dataset name.')
 
     input_args.add_argument('--files', default=None, type=str, nargs='+',
@@ -40,26 +47,34 @@ def parse_cli():
                         help='Skim to run over.')
     input_args.add_argument('--period', default="2017", type=str,
                         help='Period to run over.')
-
+    
+    subparsers = parser.add_subparsers  ()
 
     parser_local = subparsers.add_parser("local")
     parser_local.set_defaults(func=do_local)
 
     parser_sub = subparsers.add_parser("submit")
-    parser_local.set_defaults(func=do_submit)
+    parser_sub.set_defaults(func=do_submit)
 
     args = parser.parse_args()
 
 
+    # Logger
+    format = '%(levelname)s (%(name)s) [%(asctime)s]: %(message)s'
+    date = '%F %H:%M:%S'
+    logging.basicConfig(
+        level=logging._levelNames[args.debug], format=format, datefmt=date)
 
 
-
-    return args
+    print args.func
+    args.func(args)
 
 
 def do_local(args):
+    print "Running locally."
+
     # Initialize right type of analyzer
-    Analyzer = getattr(PyBindings, args.analyzer)
+    Analyzer = getattr(PyBindings, args.analyzer) 
 
     if args.files:
         # Manual mode
@@ -69,21 +84,27 @@ def do_local(args):
     else:
         # Database mode
         # /disk1/albert/hinv_vbf/slc7/analysis/nanocppfw/python/database/test.db
-        session = init_db_session(args.db)
+        session = init_db_session(os.path.expanduser(args.db))
 
         for dataset in session.query(Dataset):
 
             # Period and dataset name must match
-            match = re.match(args.period, dataset.period) \
+            match = re.match(args.period, dataset.period_tag) \
                     and re.match(args.dataset, dataset.path)
             if not match:
+                log.debug("No match: {}".format(dataset.path))
                 continue
+            
+            log.debug("Matching dataset: {}".format(dataset.path))
 
             # Files from right skim
-            files = [x for x in dataset.files if x.skim_tag == args.skim]
+            files = [x.path for x in dataset.files if x.skim_tag == args.skim]
 
+            if not files:
+                log.debug("No files found with skim: {}".format(skim_tag))
+                continue
             ana = Analyzer(files)
-            ana.set_fixed_dataset(args.dataset)
+            ana.set_fixed_dataset(dataset.path.replace("/","_"))
             ana.run()
     return
 
@@ -91,8 +112,8 @@ def do_submit(args):
     return
 
 def main():
-    args = parse_cli()
-
+    parse_cli()
+    
 
 if __name__ == "__main__":
     main()
