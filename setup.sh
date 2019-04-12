@@ -1,0 +1,1 @@
+export NANOCPPFW_BASE=$(readlink -e $(dirname "${BASH_SOURCE[0]}"))
