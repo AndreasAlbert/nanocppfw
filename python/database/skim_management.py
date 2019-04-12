@@ -13,6 +13,7 @@ import json
 import re
 import subprocess
 import sys
+
 class skim(luigi.Config):
     cmssw_base = luigi.Parameter(default='')
 
@@ -25,6 +26,31 @@ class InitializePeriod(sqla.CopyToTable):
 
     def rows(self):
         yield (self.period,)
+
+def pretty_dataset_name(dataset, is_mc):
+    ### Prettify data set name
+    dataset_simplified, conditions = dataset.split("/")[1:3]
+
+    if is_mc:
+        # Attach short campaign identifier
+        for campaign in ["RunIIFall17", "RunIIAutumn18"]:
+            if campaign in conditions:
+                dataset_simplified = "{}_{}".format(campaign, dataset_simplified)
+
+        # Check if extension
+        m = re.match(".*(ext\d+)", conditions);
+        if m:
+            groups = m.groups()
+            assert len(groups) == 1
+            dataset_simplified = "{}_{}".format(dataset_simplified, groups[0])
+    else:
+        m = re.match("(Run\d+[A-Z])", conditions)
+        if m:
+            groups = m.groups()
+            assert len(groups) == 1
+            dataset_simplified = "{}_{}".format(dataset_simplified, groups[0])
+
+    return dataset_simplified
 
 class GetDatasets(luigi.Task):
     input_path = luigi.Parameter()
@@ -53,7 +79,7 @@ class GetDatasets(luigi.Task):
     def run(self):
         self.expand_input_path()
         out = self.output().open("w")
-        rawline = "{path} {is_mc} {xs} {nevents} {period}\n"
+        rawline = "{path} {shortname} {is_mc} {xs} {nevents} {period}\n"
         for ipath in self.paths:
             # Get data set properties from DAS
             props = json.loads(das_go_query("dataset={}".format(ipath), json=True))
@@ -72,64 +98,17 @@ class GetDatasets(luigi.Task):
 
             yield InitializePeriod(period)
 
+            # Shortened name
+            shortname = pretty_dataset_name(ipath, is_mc)
+
             # Dummy
             xs = 0
 
+
             # Construct row
-            line = rawline.format(path=ipath, is_mc=is_mc, xs=xs, nevents=nevents, period=period)
+            line = rawline.format(path=ipath, shortname=shortname, is_mc=is_mc, xs=xs, nevents=nevents, period=period)
             out.write(line)
         out.close()
-
-# class InitializeDatasets(sqla.CopyToTable):
-#     input_path = luigi.Parameter()
-
-#     reflect = True
-#     connection_string = "sqlite:///test.db"  # in memory SQLite database
-#     table = "dataset"
-
-#     def expand_input_path(self):
-#         """Expand a dataset path into a list of matching paths
-
-#         If the input path is already a fully formed path,
-#         the output list will simply contain that path as its
-#         only element. If, however, there are asterisks in the
-#         input, a DAS query will be used to find all data set
-#         names matching this pattern.
-
-#         :raises RuntimeError: If DAS reports that no matching paths are found.
-#         """
-#         rawlines = das_go_query("dataset={}".format(self.input_path))
-
-#         paths = list(map(lambda x: x.decode("utf-8").strip(), rawlines.splitlines()))
-#         if not len(paths):
-#             raise RuntimeError("No datasets found for path {}.".format(self.input_path))
-#         self.paths = paths
-
-#     def rows(self):
-#         self.expand_input_path()
-#         print self.paths
-#         for ipath in self.paths:
-#             # Get data set properties from DAS
-#             props = json.loads(das_go_query("dataset={}".format(ipath), json=True))
-#             data = {}
-#             for entry in props:
-#                 data.update(entry["dataset"][0])
-
-#             # Number of events in data set
-#             nevents = int(data["nevents"])
-
-#             # MC or not?
-#             is_mc = data["datatype"] != "data"
-
-#             # Run period
-#             period = data["acquisition_era_name"]
-
-#             # Dummy
-#             xs = None
-
-#             # Construct row
-#             irow = (ipath, is_mc, xs, nevents, period)
-#             yield irow
 
 class RegisterDatasets(sqla.CopyToTable):
     input_path = luigi.Parameter()

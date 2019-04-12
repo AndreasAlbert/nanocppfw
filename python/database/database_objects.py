@@ -22,6 +22,7 @@ class Dataset(Base):
     # Properties
     __tablename__ = 'dataset'
     path = Column(String(100), primary_key=True)
+    shortname = Column(String(100))
     is_mc = Column(Boolean, nullable=False)
     xs = Column(Float)
     events = Column(Integer)
