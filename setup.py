@@ -49,15 +49,20 @@ def get_root_compile_opts():
 ext_modules = [
     Extension(
         'nanocppfw',
-        ['src/Analyzer.cc',
-         'src/HInvAnalyzer.cc',
-         'src/PyBindings.cc'],
+        [
+        #     'obj/Analyzer.o',
+        # 'obj/HInvAnalyzer.o',
+        # 'pybind/PyBindings.so',
+        # 'src/Analyzer.cc',
+        #  'src/HInvAnalyzer.cc',
+         'src/PyBindings.cc'
+        ],
+        #  ['src/PyBindings.cc'],
         include_dirs=[
             # Path to pybind11 headers
             get_pybind_include(),
             get_pybind_include(user=True),
             ".",
-
         ],
         language='c++'
     ),
@@ -71,14 +76,14 @@ class BuildCPP(build_ext):
         opts = []
         opts.append('-DVERSION_INFO="%s"' % self.distribution.get_version())
         opts.append("-std=c++11")
-        opts.extend(shlex.split(get_root_compile_opts()))
         # opts.append("`root-config --cflags --glibs`")
         opts.append("-I .")
-
+        opts.append("-fPIC")
+        opts.extend(shlex.split(get_root_compile_opts()))
         for ext in self.extensions:
             ext.extra_compile_args = opts
         build_ext.build_extensions(self)
-
+        # subprocess.call(["make","PyBindings"])
 
 os.environ["CC"] = "g++"
 setup(
@@ -113,6 +118,7 @@ setup(
 
 # g++ -c -o obj/Analyzer.o src/Analyzer.cc -I. -std=c++11 `root-config --cflags --glibs` -fPIC
 
+# g++ -c -o obj/Analyzer.o src/Analyzer.cc -I. -std=c++11 -pthread -std=c++11 -m64 -I/home/albert/software/root/6.16.00/build_py2/include -L/home/albert/software/root/6.16.00/build_py2/lib -lGui -lCore -lImt -lRIO -lNet -lHist -lGraf -lGraf3d -lGpad -lROOTVecOps -lTree -lTreePlayer -lRint -lPostscript -lMatrix -lPhysics -lMathCore -lThread -lMultiProc -lROOTDataFrame -pthread -lm -ldl -rdynamic -fPIC
 
 
-# g++ -fno-strict-aliasing -O2 -g -pipe -Wall -Wp,-D_FORTIFY_SOURCE=2 -fexceptions -fstack-protector-strong --param=ssp-buffer-size=4 -grecord-gcc-switches -m64 -mtune=generic -D_GNU_SOURCE -fPIC -fwrapv -DNDEBUG -O2 -g -pipe -Wall -Wp,-D_FORTIFY_SOURCE=2 -fexceptions -fstack-protector-strong --param=ssp-buffer-size=4 -grecord-gcc-switches -m64 -mtune=generic -D_GNU_SOURCE -fPIC -fwrapv -fPIC -I/.automount/home/home__home1/institut_3a/albert/.virtualenvs/testenv/include/site/python2.7 -I/.automount/home/home__home1/institut_3a/albert/.virtualenvs/testenv/include/site/python2.7 -I. -I/usr/include/python2.7 -c src/Analyzer.cc -o build/temp.linux-x86_64-2.7/src/Analyzer.o
+# g++ -DNDEBUG -g -fwrapv -O2 -Wall -Wstrict-prototypes -fno-strict-aliasing -Wdate-time -D_FORTIFY_SOURCE=2 -g -fdebug-prefix-map=/build/python2.7-3hk45v/python2.7-2.7.15~rc1=. -fstack-protector-strong -Wformat -Werror=format-security -fPIC -I/home/albert/code/virtualenv/testenv/include/site/python2.7 -I/home/albert/code/virtualenv/testenv/include/site/python2.7 -I. -I/usr/include/python2.7 -c src/Analyzer.cc -o build/temp.linux-x86_64-2.7/src/Analyzer.o -DVERSION_INFO="0.0.1" -std=c++11 -pthread -std=c++11 -m64 -I/home/albert/software/root/6.16.00/build_py2/include -L/home/albert/software/root/6.16.00/build_py2/lib -lGui -lCore -lImt -lRIO -lNet -lHist -lGraf -lGraf3d -lGpad -lROOTVecOps -lTree -lTreePlayer -lRint -lPostscript -lMatrix -lPhysics -lMathCore -lThread -lMultiProc -lROOTDataFrame -pthread -lm -ldl -rdynamic -I . -fPIC
