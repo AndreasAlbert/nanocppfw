@@ -12,11 +12,9 @@ from law.contrib.tasks import TransferLocalFile
 from law.workflow.local import LocalWorkflow
 from law.contrib.git import BundleGitRepository
 
-__all__ = ["ExampleAnalysisTask","CustomBundleGitRepository"]
+__all__ = ["ExampleAnalysisTask"]
 
 class AnalysisBaseTask(LocalWorkflow, GLiteWorkflow):
-    
-
     def output(self):
         return WLCGFileTarget("output_{}.txt".format(self.branch))
 
@@ -37,33 +35,12 @@ class AnalysisBaseTask(LocalWorkflow, GLiteWorkflow):
 
     def glite_workflow_requires(self):
         reqs = {}
-        reqs["bundle"] = BundleGitRepository.req(self,repo_path=os.environ["NANOCPPFW_BASE"], exclude_files=["*.tgz","data"])
+        reqs["bundle"] = BundleGitRepositoryWithDateStamp.req(self,repo_path=os.environ["NANOCPPFW_BASE"], exclude_files=["*.tgz","data"])
         reqs["software"] = UploadSoftware.req(self, source_path=reqs["bundle"].output().path,replicas=5, _prefer_cli=["replicas"])
         return reqs
 
-import luigi
-from law import Task, LocalFileTarget, CSVParameter, NO_STR
 from datetime import datetime
-class CustomBundleGitRepository(BundleGitRepository):
-    # repo_path = luigi.Parameter(description="the path to the repository to bundle")
-    # exclude_files = CSVParameter(default=[], description="patterns of files to exclude")
-    # include_files = CSVParameter(default=[], description="patterns of files to force-include, "
-    #     "takes precedence over .gitignore")
-    # custom_checksum = luigi.Parameter(default=NO_STR, description="a custom checksum to use")
-
-    # def __init__(self, *args, **kwargs):
-    #     super(CustomBundleGitRepository, self).__init__(*args, **kwargs)
-
-    # @property
-    # def checksum(self):
-    #     super(CustomBundleGitRepository,self).checksum()
-    #     cs = "{}-{}-{}_{}".format(datetime.now().year(),
-    #                               datetime.now().month(),
-    #                               datetime.now().day(),
-    #                               self._checksum)
-    #     self._checksum = cs
-    #     print cs
-    #     return cs
+class BundleGitRepositoryWithDateStamp(BundleGitRepository):
     def output(self):
         return LocalFileTarget("gridpacks/{}_{}_{}.tgz".format(os.path.basename(self.repo_path),
                                                      datetime.strftime(datetime.now(), '%y-%m-%d'),self.checksum))
