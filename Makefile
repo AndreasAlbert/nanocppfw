@@ -4,7 +4,7 @@ CFLAGS=-I$(IDIR) -std=c++11 `root-config --cflags --glibs`
 
 PYBIND=`python -m pybind11 --includes` -fPIC --shared
 
-PYBINDIR=pybind
+PYBINDIR=nanocppfw
 BINDIR=bin
 ODIR=obj
 SRCDIR=src
@@ -22,11 +22,11 @@ $(ODIR)/%.o: $(SRCDIR)/%.cc
 	$(CC) -c -o $@ $< $(CFLAGS) -fPIC
 
 py: $(OBJ)
-	$(CC) src/PyBindings.cc -o $(PYBINDIR)/nanocppfw.so $^ $(CFLAGS) $(LIBS) $(PYBIND)
+	$(CC) src/PyBindings.cc -o $(PYBINDIR)/pybindings.so $^ $(CFLAGS) $(LIBS) $(PYBIND)
 
 
 .PHONY: clean
 
 clean:
-	rm -f $(ODIR)/*.o *~ core $(INCDIR)/*~ $(PYBINDIR)/*.so PyBindings.so $(BINDIR)/*
+	rm -f $(ODIR)/*.o *~ core $(INCDIR)/*~ $(PYBINDIR)/*.so $(BINDIR)/*
 
