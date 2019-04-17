@@ -36,38 +36,20 @@ source ${ENVDIR}/bin/activate
 # Install law
 python -m pip install law
 
-echo "
-[logging]
-
-law: INFO 
-
-[wlcg_fs]
-
-base: srm://grid-srm.physik.rwth-aachen.de:8443/srm/managerv2?SFN=/pnfs/physik.rwth-aachen.de/cms/store/user/aalbert/testlaw
-base_listdir: gsiftp://grid-srm.physik.rwth-aachen.de//pnfs/physik.rwth-aachen.de/cms/store/user/aalbert/testlaw
-
-
-[wlcg_fs_software]
-
-base: srm://grid-srm.physik.rwth-aachen.de:8443/srm/managerv2?SFN=/pnfs/physik.rwth-aachen.de/cms/store/user/aalbert/testlaw/software
-base_listdir: gsiftp://grid-srm.physik.rwth-aachen.de//pnfs/physik.rwth-aachen.de/cms/store/user/aalbert/testlaw/
-
-" > law.cfg
- 
-export LUIGI_CONFIG_PATH="$(readlink -e ./law.cfg)"
-
-
 # Get software
+mkdir -p software
+pushd software
+load_replica "srm://grid-srm.physik.rwth-aachen.de:8443/srm/managerv2?SFN=/pnfs/physik.rwth-aachen.de/cms/store/user/aalbert/testlaw/" "nanocppfw.*.tgz" "nanocppfw.tgz"
 
-export SOFTWARE_NAME="testtask"
+tar xf nanocppfw.tgz  || return "$?"
+rm nanocppfw.tgz
 
-mkdir -p "${SOFTWARE_NAME}"
-pushd "${SOFTWARE_NAME}"
-touch "__init__.py"
-load_replica "srm://grid-srm.physik.rwth-aachen.de:8443/srm/managerv2?SFN=/pnfs/physik.rwth-aachen.de/cms/store/user/aalbert/testlaw/" "testtask\.\d+\.py" "testtask.py"
-
+pushd nanocppfw
+make
+source nanocppfw/setup.sh || return "$?"
 popd
 
+export LUIGI_CONFIG_PATH="$NANOCPPFW_BASE/nanocppfw/law.cfg)"
 
 # Set up gfal
 wget https://www.dropbox.com/s/3nylghi0xtqaiyy/gfal2.tgz
@@ -75,14 +57,9 @@ tar -xzf gfal2.tgz
 rm gfal2.tgz
 
 source "gfal2/setup.sh" || return "$?"
-
-export PYTHONPATH=${PYTHONPATH}:$(pwd):$(readlink -e "${SOFTWARE_NAME}")
-
-
-
-
+popd
+ls -la software
 ls -la .
 
-ls -la ${SOFTWARE_NAME}
 
 echo $PYTHONPATH
