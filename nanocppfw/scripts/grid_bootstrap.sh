@@ -20,7 +20,7 @@ load_replica() {
 export CMSSW_VERSION="CMSSW_10_2_13"
 export ENVNAME=myenv
 
-# Set up CMSSW
+### Set up CMSSW
 source /cvmfs/cms.cern.ch/cmsset_default.sh
 scramv1 project CMSSW $CMSSW_VERSION
 pushd $CMSSW_VERSION/src;
@@ -28,7 +28,7 @@ eval `scramv1 runtime -sh`
 popd
 
 
-# Virtual environment
+#### Virtual environment
 python -m virtualenv "${ENVNAME}"
 export ENVDIR=$(readlink -e "./${ENVNAME}/")
 source ${ENVDIR}/bin/activate
@@ -36,9 +36,11 @@ source ${ENVDIR}/bin/activate
 # Install law
 python -m pip install law
 
-# Get software
+### Get software
 mkdir -p software
 pushd software
+
+# The framework
 load_replica "srm://grid-srm.physik.rwth-aachen.de:8443/srm/managerv2?SFN=/pnfs/physik.rwth-aachen.de/cms/store/user/aalbert/testlaw/" "nanocppfw.*.tgz" "nanocppfw.tgz"
 
 tar xf nanocppfw.tgz  || return "$?"
@@ -63,3 +65,5 @@ ls -la .
 
 
 echo $PYTHONPATH
+
+### Done
