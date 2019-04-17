@@ -1,4 +1,4 @@
-IDIR =.
+IDIR=.
 CC=g++
 CFLAGS=-I$(IDIR) -std=c++11 `root-config --cflags --glibs`
 
@@ -37,3 +37,4 @@ PyBindings: $(OBJ)
 
 clean:
 	rm -f $(ODIR)/*.o *~ core $(INCDIR)/*~ $(PYBINDIR)/*.so PyBindings.so $(BINDIR)/*
+
