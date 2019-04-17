@@ -8,7 +8,7 @@
 
 namespace py = pybind11;
 
-PYBIND11_MODULE(PyBindings, m) {
+PYBIND11_MODULE(nanocppfw, m) {
     m.doc() = "pybind11 example plugin"; // optional module docstring
 
     py::class_<Analyzer>(m, "Analyzer")

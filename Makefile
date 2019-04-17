@@ -10,12 +10,10 @@ ODIR=obj
 SRCDIR=src
 LIBS=-lm
 
-# _DEPS = Analyzer
-# DEPS = $(patsubst %,$(IDIR)/%,$(_DEPS))
-
 _OBJ = Analyzer.o HInvAnalyzer.o SelectionManager.o
 OBJ = $(patsubst %,$(ODIR)/%,$(_OBJ))
 
+# Set up output directories
 $(shell   mkdir -p $(BINDIR))
 $(shell   mkdir -p $(ODIR))
 $(shell   mkdir -p $(PYBINDIR))
@@ -23,14 +21,14 @@ $(shell   mkdir -p $(PYBINDIR))
 $(ODIR)/%.o: $(SRCDIR)/%.cc
 	$(CC) -c -o $@ $< $(CFLAGS) -fPIC
 
-run_analysis: $(OBJ)
-	$(CC) src/$@.cc -o $(BINDIR)/$@ $^ $(CFLAGS) $(LIBS) 
+# run_analysis: $(OBJ)
+# 	$(CC) src/$@.cc -o $(BINDIR)/$@ $^ $(CFLAGS) $(LIBS)
 
-run_hinv: $(OBJ)
-	$(CC) src/$@.cc -o $(BINDIR)/$@ $^ $(CFLAGS) $(LIBS)
+# run_hinv: $(OBJ)
+# 	$(CC) src/$@.cc -o $(BINDIR)/$@ $^ $(CFLAGS) $(LIBS)
 
-PyBindings: $(OBJ)
-	$(CC) src/$@.cc -o $(PYBINDIR)/$@.so $^ $(CFLAGS) $(LIBS) $(PYBIND)
+py: $(OBJ)
+	$(CC) src/PyBindings.cc -o $(PYBINDIR)/nanocppfw.so $^ $(CFLAGS) $(LIBS) $(PYBIND)
 
 
 .PHONY: clean
