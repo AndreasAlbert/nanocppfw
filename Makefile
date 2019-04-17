@@ -21,12 +21,6 @@ $(shell   mkdir -p $(PYBINDIR))
 $(ODIR)/%.o: $(SRCDIR)/%.cc
 	$(CC) -c -o $@ $< $(CFLAGS) -fPIC
 
-# run_analysis: $(OBJ)
-# 	$(CC) src/$@.cc -o $(BINDIR)/$@ $^ $(CFLAGS) $(LIBS)
-
-# run_hinv: $(OBJ)
-# 	$(CC) src/$@.cc -o $(BINDIR)/$@ $^ $(CFLAGS) $(LIBS)
-
 py: $(OBJ)
 	$(CC) src/PyBindings.cc -o $(PYBINDIR)/nanocppfw.so $^ $(CFLAGS) $(LIBS) $(PYBIND)
 
