@@ -5,7 +5,7 @@ import luigi
 import law
 from law.target.local import LocalFileTarget, LocalDirectoryTarget
 from law.workflow.local import LocalWorkflow
-from law.contrib.wlcg.util import check_voms_proxy_validity
+from law.contrib.wlcg.util import check_voms_proxy_validity, get_voms_proxy_lifetime
 
 from nanocppfw.htcondor.workflows import CernHTCondorWorkflow
 from nanocppfw.pybindings import HInvAnalyzer
@@ -36,7 +36,9 @@ class ExampleAnalysisTask(CernHTCondorWorkflow, LocalWorkflow):
 
     def run(self):
         if not check_voms_proxy_validity():
-            raise RuntimeError("No VOMS proxy found!")
+            raise RuntimeError("No VOMS proxy found. Please initialize!")
+        if get_voms_proxy_lifetime() < 8*60*60:
+            raise RuntimeError("VOMS proxy life time left should be longer than eight hours. Please renew!")
 
         inputdata = self.branch_data
         ana = HInvAnalyzer(inputdata)
