@@ -16,6 +16,9 @@ HInvAnalyzer::HInvAnalyzer(vector<string> infiles) : Analyzer::Analyzer(infiles)
 SelectionManager HInvAnalyzer::initialize_selections_() {
     SelectionManager sman;
 
+    // Inclusive
+    sman.add_selection(Selection("INCLUSIVE","true", false));
+
     // Signal
     sman.add_selection(Selection("SR_VBF","(nGoodJet>1) && (GoodJet_eta[0]*GoodJet_eta[1]) < 0 && (MET_ptv > 100) && (nGoodElectron+nGoodMuon==0)", true));
 
@@ -137,7 +140,6 @@ void HInvAnalyzer::analyze_variation_(RNode rnode, TString variation){
     // Event selection
     selection_manager_.set_blind(this->is_data_);
     rnode = selection_manager_.select(rnode);
-    rnode = rnode.Filter("selection > 0");
 
     if(this->is_data_) {
         rnode = rnode.Define("vweight","1");
