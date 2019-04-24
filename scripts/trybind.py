@@ -1,10 +1,10 @@
 #!/usr/bin/env python
 import sys
-import PyBindings
+import nanocppfw.pybindings
 import argparse
+import os
 
-
-from database_objects import *
+from nanocppfw.database.database_objects import Dataset
 import sqlalchemy as db
 
 from sqlalchemy.orm import sessionmaker
@@ -28,11 +28,13 @@ def parse_cli():
     general_args = parser.add_argument_group("General")
     general_args.add_argument('--debug', default="INFO", type=str, choices=logging._levelNames.keys(),
                         help='Debug level.')
+    general_args.add_argument('--jobs','-j', default=1, type=int,
+                        help='Number of parallel processes for the analysis.')
 
     analysis_args = parser.add_argument_group("Analysis")
     analysis_args.add_argument('--analyzer', default="HInvAnalyzer", type=str,
                         help='Analyzer to run.')
-    
+
     input_args = parser.add_argument_group("Inputs")
     input_args.add_argument('--dataset', default=None, required=False, type=str,
                         help='Dataset name.')
@@ -47,7 +49,7 @@ def parse_cli():
                         help='Skim to run over.')
     input_args.add_argument('--period', default="2017", type=str,
                         help='Period to run over.')
-    
+
     subparsers = parser.add_subparsers  ()
 
     parser_local = subparsers.add_parser("local")
@@ -66,7 +68,6 @@ def parse_cli():
         level=logging._levelNames[args.debug], format=format, datefmt=date)
 
 
-    print args.func
     args.func(args)
 
 
@@ -74,7 +75,7 @@ def do_local(args):
     print "Running locally."
 
     # Initialize right type of analyzer
-    Analyzer = getattr(PyBindings, args.analyzer) 
+    Analyzer = getattr(nanocppfw.pybindings, args.analyzer)
 
     if args.files:
         # Manual mode
@@ -94,7 +95,7 @@ def do_local(args):
             if not match:
                 log.debug("No match: {}".format(dataset.path))
                 continue
-            
+
             log.debug("Matching dataset: {}".format(dataset.path))
 
             # Files from right skim
@@ -104,7 +105,8 @@ def do_local(args):
                 log.debug("No files found with skim: {}".format(skim_tag))
                 continue
             ana = Analyzer(files)
-            ana.set_fixed_dataset(dataset.path.replace("/","_"))
+            ana.set_fixed_dataset(dataset.shortname)
+            ana.set_ncpu(args.jobs)
             ana.run()
     return
 
@@ -113,7 +115,7 @@ def do_submit(args):
 
 def main():
     parse_cli()
-    
+
 
 if __name__ == "__main__":
     main()
