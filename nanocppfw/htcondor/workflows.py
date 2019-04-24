@@ -1,9 +1,12 @@
-import law
 import os
+import luigi
+import law
 
 from law.target.local import LocalDirectoryTarget
 from law.contrib.htcondor import HTCondorWorkflow
 from law.contrib.wlcg.util import get_voms_proxy_file
+
+from pytimeparse.timeparse import timeparse
 
 class CernHTCondorWorkflow(HTCondorWorkflow):
     """
@@ -13,6 +16,11 @@ class CernHTCondorWorkflow(HTCondorWorkflow):
     the CERN HTCondor environment. In most cases, like in this example, only a minimal amount of
     configuration is required.
     """
+
+    job_max_runtime = luigi.Parameter(default="1h", significant=False, description="Maximal "
+        "job run time. May be any string parseable by pytimeparse.timeparse")
+    job_request_cpus = luigi.Parameter(default="1", significant=False, description="Number "
+        "of CPUs to request.")
 
     def htcondor_output_directory(self):
         # the directory where submission meta data should be stored
@@ -36,6 +44,10 @@ class CernHTCondorWorkflow(HTCondorWorkflow):
         # the CERN htcondor setup requires a "log" config, but we can safely set it to /dev/null
         # if you are interested in the logs of the batch system itself, set a meaningful value here
         config.custom_content.append(("log", "log.log "))
+
+        # Job resources
+        config.custom_content.append(("MaxRuntime", timeparse(self.job_max_runtime)))
+        config.custom_content.append(("RequestCpus", self.job_request_cpus))
 
         # voms proxy file
         config.input_files.append(get_voms_proxy_file())
