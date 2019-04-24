@@ -27,9 +27,9 @@ void Analyzer::analyze_chain_(){
 
     for(auto variation : variations_) {
         this->histograms_[variation] = HVec1D();
-        analyze_variation_(rdf, variation);
+        this->analyze_variation_(rdf, variation);
     }
-    write_histograms_();
+    this->write_histograms_();
 };
 
 // Saves the histograms to file
