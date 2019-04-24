@@ -29,7 +29,8 @@ class AnalyzerTask(CernHTCondorWorkflow, LocalWorkflow):
     """Analysis task for a set of files."""
 
     version = luigi.Parameter()
-    dryrun = luigi.BoolParameter()
+    dryrun = luigi.BoolParameter(default=False, description="Do not do real analysis, just touch output files.")
+    ncpu = luigi.IntParameter(default=1,description="The number of CPUs to run on.")
 
     def create_branch_map(self):
         return {1 : ["root://cms-xrd-global.cern.ch///store/mc/RunIIFall17NanoAODv4/ZJetsToNuNu_HT-100To200_13TeV-madgraph/NANOAODSIM/PU2017_12Apr2018_Nano14Dec2018_102X_mc2017_realistic_v6-v1/90000/007E0986-34E9-9741-A447-957FF2F1982C.root"],
@@ -54,6 +55,7 @@ class AnalyzerTask(CernHTCondorWorkflow, LocalWorkflow):
         ana = HInvAnalyzer(inputdata)
         ana.set_fixed_dataset(self.dataset_name())
         ana.set_output_path(self.output().path)
+        ana.set_ncpu(self.ncpu)
         ana.run()
 
     def run(self):
