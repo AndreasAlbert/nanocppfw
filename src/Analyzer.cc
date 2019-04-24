@@ -17,7 +17,15 @@ Analyzer::Analyzer(vector<string> infiles) : Analyzer(string_to_tstrings(infiles
 void Analyzer::set_output_path(string output_path) {
     this->ofpath_ = TString(output_path);
 }
+void Analyzer::set_ncpu(unsigned int ncpu) {
+    switch(ncpu){
+        case 0: throw std::invalid_argument("Analyzer::set_ncpu argument should be larger than zero.");
 
+        case 1: ROOT::DisableImplicitMT();
+
+        default: ROOT::EnableImplicitMT(ncpu);
+    }
+}
 void Analyzer::analyze_chain_(){
     vector<string> strings;
     for(auto const tstring : this->files_) {

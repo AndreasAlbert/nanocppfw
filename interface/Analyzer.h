@@ -21,6 +21,7 @@ class Analyzer{
         void run();
         void set_output_path(string output_path);
         void set_fixed_dataset(string dataset);
+        void set_ncpu(unsigned int ncpu);
     protected:
         void analyze_chain_();
         virtual void analyze_variation_(RNode rnode, TString variation);

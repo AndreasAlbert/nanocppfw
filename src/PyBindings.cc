@@ -19,5 +19,6 @@ PYBIND11_MODULE(pybindings, m) {
         .def(py::init<const std::vector<std::string> &>())
         .def("run", &Analyzer::run)
         .def("set_fixed_dataset", &Analyzer::set_fixed_dataset)
-        .def("set_output_path", &Analyzer::set_output_path);
+        .def("set_output_path", &Analyzer::set_output_path)
+        .def("set_ncpu", &Analyzer::set_ncpu);
 }
