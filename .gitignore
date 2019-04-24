@@ -42,3 +42,4 @@ bin/
 obj/
 pybind/
 gridpacks
+.law
