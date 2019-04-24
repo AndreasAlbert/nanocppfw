@@ -46,7 +46,7 @@ class CernHTCondorWorkflow(HTCondorWorkflow):
         config.custom_content.append(("log", "log.log "))
 
         # Job resources
-        config.custom_content.append(("MaxRuntime", timeparse(self.job_max_runtime)))
+        config.custom_content.append(("+MaxRuntime", timeparse(self.job_max_runtime)))
         config.custom_content.append(("RequestCpus", self.job_request_cpus))
 
         # voms proxy file
