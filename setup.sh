@@ -13,4 +13,5 @@ export LUIGI_CONFIG_FILE=${NANOCPPFW_BASE}/luigi.cfg
 
 # law
 export LAW_HOME="${NANOCPPFW_BASE}/.law"
+mkdir -p ${LAW_HOME}
 export LAW_CONFIG_FILE=${NANOCPPFW_BASE}/nanocppfw/law.cfg
