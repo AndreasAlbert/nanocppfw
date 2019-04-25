@@ -111,7 +111,7 @@ class DatasetAnalysisTask(AnalyzerTask):
         return branches
 
     def dataset_object(self):
-        """Reads the correct Dataset object from the database"""
+        """Reads the Dataset object corresponding to the dataset of this task from the database"""
         if not self._dataset_object:
             # Get matching datasets
             session = init_db_session(os.environ["NANOCPPFW_DATABASE"])
@@ -152,7 +152,12 @@ class HaddTask(law.Task):
         return LocalFileTarget(self.output_file)
 
 class MultiDatasetAnalysisTask(law.Task):
-    """Wrapper task to analyze multiple datasets."""
+    """
+    Wrapper task to analyze multiple datasets.
+
+    Each dataset is analyzed by a separate DatasetAnalysisTask,
+    which is required by this task.
+    """
     dataset_regex = luigi.Parameter()
     period_regex = luigi.Parameter()
     skim = luigi.Parameter()
