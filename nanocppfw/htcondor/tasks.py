@@ -140,6 +140,9 @@ class DatasetAnalysisTask(AnalyzerTask):
     def dataset_name(self):
         return self.dataset_object().shortname
 
+    def store_parts(self):
+        return (self.__class__.__name__,self.version, self.dataset_name())
+
 import subprocess
 class HaddTask(law.Task):
     """Merges ROOT files using the 'hadd' function."""
