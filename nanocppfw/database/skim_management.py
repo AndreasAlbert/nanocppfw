@@ -120,6 +120,7 @@ class RegisterDatasets(sqla.CopyToTable):
     def requires(self):
         return GetDatasets(self.input_path)
 
+from datetime import datetime
 class RegisterSkim(sqla.CopyToTable):
     skim_tag = luigi.Parameter()
 
@@ -128,7 +129,7 @@ class RegisterSkim(sqla.CopyToTable):
     table = "skim"
 
     def rows(self):
-        yield [self.skim_tag, ""]
+        yield [self.skim_tag, datetime(2019,4,3)]
 
 class ExtractTarMember(luigi.Task):
     """Task that extracts a given tar file
