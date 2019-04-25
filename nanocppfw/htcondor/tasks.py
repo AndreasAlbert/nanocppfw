@@ -1,5 +1,6 @@
 import os
 import re
+import shutil
 
 import luigi
 
@@ -51,12 +52,18 @@ class AnalyzerTask(CernHTCondorWorkflow, LocalWorkflow):
         if get_voms_proxy_lifetime() < 8*60*60:
             raise RuntimeError("VOMS proxy life time left should be longer than eight hours. Please renew!")
 
-        inputdata = self.branch_data
-        ana = HInvAnalyzer(inputdata)
+        files = self.branch_data
+        ana = HInvAnalyzer(files)
         ana.set_fixed_dataset(self.dataset_name())
-        ana.set_output_path(self.output().path)
+
+        # The output is first written into a temporary file
+        tmp_name = "tmp.root"
+        ana.set_output_path(tmp_name)
         ana.set_ncpu(self.ncpu)
         ana.run()
+
+        # And then copied only once the analysis is complete
+        shutil.copy2(tmp_name, self.output().path)
 
     def run(self):
         if self.dryrun:
