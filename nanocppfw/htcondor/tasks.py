@@ -17,6 +17,7 @@ from nanocppfw.database.database_objects import Dataset
 __all__ = ["AnalyzerTask","MultiDatasetAnalysisTask"]
 
 class MkdirTask(law.Task):
+    """Task that creates a directory on a local file system"""
     path = luigi.Parameter()
 
     def output(self):
