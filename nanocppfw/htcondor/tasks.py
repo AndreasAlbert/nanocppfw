@@ -11,7 +11,7 @@ from law.contrib.wlcg.util import check_voms_proxy_validity, get_voms_proxy_life
 
 from nanocppfw.htcondor.workflows import CernHTCondorWorkflow
 from nanocppfw.pybindings import HInvAnalyzer
-from nanocppfw.database.util import init_db_session
+from nanocppfw.database.util import DatabaseInterface
 from nanocppfw.database.database_objects import Dataset
 
 __all__ = ["AnalyzerTask","MultiDatasetAnalysisTask"]
@@ -101,7 +101,7 @@ class DatasetAnalysisTask(AnalyzerTask):
 
     Matching files are determined from the data base.
     """
-    dataset = luigi.Parameter(description="Dataset path to analyze.")
+    dataset_path = luigi.Parameter(description="Dataset path to analyze.")
     skim = luigi.Parameter("Skim to analyze.")
     files_per_branch = luigi.IntParameter(default=5)
 
@@ -120,21 +120,21 @@ class DatasetAnalysisTask(AnalyzerTask):
 
     def dataset_object(self):
         """Reads the Dataset object corresponding to the dataset of this task from the database"""
+        # The result is cached as a member variable of the task
         if not self._dataset_object:
-            # Get matching datasets
-            session = init_db_session(os.environ["NANOCPPFW_DATABASE"])
+            # Use common filter interface to find matching datasets
+            dbint = DatabaseInterface(filter_dataset_path=self.dataset_path)
+            dataset_objects = dbint.get_datasets()
 
-            matching_datasets = session.query(Dataset) \
-                    .filter(Dataset.path==self.dataset)
-
-            matching_datasets = list(matching_datasets)
-            nmatch = len(matching_datasets)
+            # Ascertain that exactly one dataset was found
+            nmatch = len(dataset_objects)
             if nmatch == 0:
                 raise RuntimeError("No matching datasets found.")
             if nmatch > 1:
                 raise RuntimeError("Too many matching datasets found.")
 
-            self._dataset_object = matching_datasets[0]
+            # All good
+            self._dataset_object = dataset_objects[0]
 
         return self._dataset_object
 
@@ -173,7 +173,7 @@ class MultiDatasetAnalysisTask(law.Task):
     period_regex = luigi.Parameter()
     version = luigi.Parameter()
 
-    def get_matching_datasets(self):
+    def get_matching_dataset_paths(self):
         """
         Query the data base to find datasets matching Task criteria
 
@@ -184,18 +184,14 @@ class MultiDatasetAnalysisTask(law.Task):
         :return: List of dataset paths
         :rtype: list of strings
         """
-        session = init_db_session(os.environ["NANOCPPFW_DATABASE"])
-        good_datasets = []
-        for dataset in session.query(Dataset):
-            # Period and dataset name must match
-            match = re.match(self.period_regex, dataset.period_tag) \
-                    and re.match(self.dataset_regex, dataset.path)
-            if match:
-                good_datasets.append(dataset.path)
+        dbint = DatabaseInterface(filter_dataset_path=self.dataset_regex,
+                                  filter_period=self.period_regex)
+        dataset_objects = dbint.get_datasets()
 
-        if not good_datasets:
+        if not dataset_objects:
             raise RuntimeError("No matching datasets found.")
-        return good_datasets
+
+        return [x.path for x in dataset_objects]
 
     def run(self):
         merged_files = []
@@ -226,4 +222,4 @@ class MultiDatasetAnalysisTask(law.Task):
 
 
     def requires(self):
-        return (DatasetAnalysisTask(dataset=ds,  version=self.version) for ds in self.get_matching_datasets())
+        return (DatasetAnalysisTask(dataset_path=ds,  version=self.version) for ds in self.get_matching_dataset_paths())
