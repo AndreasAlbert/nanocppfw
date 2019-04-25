@@ -4,25 +4,33 @@ import json
 from StringIO import StringIO 
 from urllib import urlencode
 import os
-
+import shlex
 class RequestWrapper:
     """ Wrapper for making http requests to xsdb api """
 
     base_url = 'https://cms-gen-dev.cern.ch/xsdb'
     api_url = base_url + '/api'
 
-    subprocess.call(['bash', 'getCookie.sh'])
+    cookie_dir=os.path.expanduser("~/.private/")
+    if not os.path.exists(cookie_dir):
+        os.makedirs(cookie_dir)
+
+    cmd = shlex.split("cern-get-sso-cookie -u https://cms-gen-dev.cern.ch/xsdb -o {}/xsdbdev-cookie.txt --krb -r".format(cookie_dir))
+    subprocess.call(cmd)
 
     c = pycurl.Curl()
     c.setopt(pycurl.FOLLOWLOCATION, 1)
-    c.setopt(pycurl.COOKIEJAR, os.path.expanduser("~/private/xsdbdev-cookie.txt"))
-    c.setopt(pycurl.COOKIEFILE, os.path.expanduser("~/private/xsdbdev-cookie.txt"))
+    c.setopt(pycurl.COOKIEJAR, os.path.expanduser("~/.private/xsdbdev-cookie.txt"))
+    c.setopt(pycurl.COOKIEFILE, os.path.expanduser("~/.private/xsdbdev-cookie.txt"))
     c.setopt(pycurl.HTTPHEADER, ['Content-Type:application/json', 'Accept:application/json'])
     c.setopt(pycurl.VERBOSE, 0)
+    c.setopt(pycurl.WRITEFUNCTION, lambda x: None)
 
     def simple_search(self, keyval_dict):
+        buffer = StringIO()
+        self.c.setopt(pycurl.WRITEDATA, buffer)
         self._perform_post(self.api_url + '/search', json.dumps(keyval_dict))
-
+        return buffer.getvalue()
     def adv_search(self, keyval_dict={}, page_size=20, current_page=0, orderby_field="", order_direction=1):
         order_by = {}
         
