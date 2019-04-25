@@ -171,11 +171,7 @@ class MultiDatasetAnalysisTask(law.Task):
     """
     dataset_regex = luigi.Parameter()
     period_regex = luigi.Parameter()
-    skim = luigi.Parameter()
-    dryrun = luigi.BoolParameter()
-    workflow = luigi.Parameter()
     version = luigi.Parameter()
-    retries = luigi.IntParameter()
 
     def get_matching_datasets(self):
         """
@@ -230,4 +226,4 @@ class MultiDatasetAnalysisTask(law.Task):
 
 
     def requires(self):
-        return (DatasetAnalysisTask(dataset=ds, skim=self.skim, version=self.version,dryrun=self.dryrun,workflow=self.workflow, retries=self.retries) for ds in self.get_matching_datasets())
+        return (DatasetAnalysisTask(dataset=ds,  version=self.version) for ds in self.get_matching_datasets())
