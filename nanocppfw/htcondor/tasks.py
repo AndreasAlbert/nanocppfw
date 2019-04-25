@@ -135,12 +135,11 @@ class DatasetAnalysisTask(AnalyzerTask):
 
 import subprocess
 class HaddTask(law.Task):
+    """Merges ROOT files using the 'hadd' function."""
     input_files = luigi.ListParameter()
     output_file = luigi.Parameter()
 
     def run(self):
-        # inputs = [re.sub("\)|\(|\'", "", x) for x in self.input_files.split(",")]
-
         cmd = ["hadd", self.output_file] + list(self.input_files)
         proc = subprocess.Popen(cmd, stdout=subprocess.PIPE)
         stdout, _ = proc.communicate()
